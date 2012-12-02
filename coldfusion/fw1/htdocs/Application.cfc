@@ -8,8 +8,8 @@
 	this.sessionTimeout = createTimeSpan(0,0,20,0);
 	this.setClientCookies = false;
 	this.scriptProtect = "cgi,cookies,url";
-	//this.mappings[ "/lib" ] = REReplace(GetDirectoryFromPath( GetCurrentTemplatePath() ),"[^\\/]+[\\/]$","","one") & "lib";
-	
+	this.mappings[ "/lib" ] = REReplace(GetDirectoryFromPath( GetCurrentTemplatePath() ),"[^\\/]+[\\/]$","","one") & "lib";
+
 	variables.framework = {
 		action = 'action',
 		defaultSection = 'home',
@@ -29,18 +29,18 @@
 		preserveKeyURLKey = 'fw1pk',
 		maxNumContextsPreserved = 3, // Set higher if you need multiple browser windows open (i.e. one per window)
 		cacheFileExists = false,
-		applicationKey = 'org.corfield.framework', 
+		applicationKey = 'org.corfield.framework',
 		/*routes = [
 			{"/search/"		= "/search/"},
 			{"/sitemap/"		= "/sitemap/"},
 			{"*" 				= "/pages/default/"}
 		]*/
 	};
-		
-	
+
+
 	public function onMissingMethod() {}
-	
-	
+
+
 	public function onMissingView()
 	{
 		if (application.config.mode eq 'dev')
@@ -49,7 +49,7 @@
 			dump(var=request.context, abort=true);
 			writelog(text="On Missing View", file="fw1", type="error");
 		}
-		else 
+		else
 		{
 			location('/404.html');
 		}
@@ -63,63 +63,10 @@
 		appStart = getTickCount();
 		application.appStartTime = now();
 		application.applicationname = this.name;
-		application.config = {
-			admin.emailTo = "michael@learnosity.com",	
-			admin.emailFrom = "error@mysite.com",
-			admin.emailSubject = "Site error for mysite",
-			dsn = "mysite",
-			dsn_ro = "mysite_ro",
-			servername = createObject("java", "java.net.InetAddress").localhost.getHostName(),
-			clientFileVersion = 1
-		}
-		
-		switch (application.config.servername)
-		{
-			case "marko-tomics-macbook-pro.local":
-			case "markl-laptop":
-			case "Neoptolemus":
-			case "mark-lynchs-macbook-pro.local":				
-			case "Peter-Phams-MacBook-Pro.local":
-			case "noah":
-			case "Matthew-MacBook-Pro.local":
-				application.config.mode = "dev";
-				application.config.logErrorsToFile = true;
-				application.config.logLevels = "debug,error,fatal,information,warning";
-				break;
-				
-			case "moya":
-			case "davoip":
-				application.config.mode = "preview";
-				application.config.logErrorsToFile = true;
-				application.config.logLevels = "debug,error,fatal,information,warning";
-				
-				// Override fw/1 defaults
-				variables.framework.reloadApplicationOnEveryRequest = false;
-				break;				
-				
-			default:
-				application.config.mode = "production";
-				application.config.logErrorsToFile = false;
-				application.config.logLevels = "error,fatal,information,warning";
-				// Override fw/1 defaults
-				variables.framework.reloadApplicationOnEveryRequest = false;
-				variables.framework.password = createUUID(); // Yeah...no reinit in production without restarting the instance
-				break;			
-		}
+		application.config = new lib.model.utils.INIParser('/lib/config/config.ini').parse();
+		application.config.environment["servername"] = createObject("java", "java.net.InetAddress").localhost.getHostName();
+		application.cfcs = {};
 
-		application.cfcs = {}
-
-		// This sites textual metadata
-		application.site = {
-			copyright = "",
-			title = "Site name",
-			subTitle = "",
-			footer = "&copy; Learnosity #year(now())#",
-			mask = {
-				dt_long = "dd-mmm-yyyy"	
-			}
-		}
-	
 		writeLog (file="#this.name#", type="Information", text="Application #this.name# started. Time taken: #getTickCount() - appStart#ms");
 
 		return true;
@@ -130,15 +77,53 @@
 	{
 		setLocale("English (Australian)");
 	}
-	
-	
-	public function onError(exception,eventname) 
+
+
+	public function onError(exception,eventname)
 	{
 		writelog(text="Type: #arguments.exception.type# . Message: #arguments.exception.message# . Detail: #arguments.exception.detail#", file=this.name, type="Error");
 		setView(variables.framework.error);
 		super.onError(arguments.exception,arguments.eventname);
 	}
-	
+
+
+	/**
+	 * @hint We need to override variables.framework values, only way to do this is pre-fw/1 onRequestStart() as setupRequest() is called later in the call stack
+	 **/
+	public any function onRequestStart(string targetPath)
+	{
+		if (isDefined("application.config.environment.mode"))
+		{
+			// Override fw/1 defaults
+			if (getConfig("environment").mode == "development")
+			{
+				variables.framework.reloadApplicationOnEveryRequest = true;
+			}
+			else if (getConfig("environment").mode == "production")
+			{
+				variables.framework.disableReloadApplication = true;
+			}
+		}
+
+		super.onRequestStart(targetPath);
+	}
+
+
+	/**
+	* @hint Returns either the full config structure (application.config), or a specific key inside the config struct
+	*/
+	private struct function getConfig(string key)
+	{
+		if (structKeyExists(arguments, "key") && len(arguments.key))
+		{
+			return application.config[key];
+		}
+		else
+		{
+			return application.config;
+		}
+	}
+
 </cfscript>
 
 </cfcomponent>
