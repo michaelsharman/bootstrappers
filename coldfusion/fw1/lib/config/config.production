@@ -1,22 +1,12 @@
 [environment]
 mode = production
 
-[cas]
-baseURI = http://cas.scootle.edu.au/cas/
-logoutDirectURI = http://cas.scootle.edu.au/ec/logout.action
-
-[csrf]
-defaultIntention = programbuilder
-
 [dsn]
-dsn = programbuilder
-dsn_ro = programbuilder_ro
+dsn = mydsn
+dsn_ro = mydsn_ro
 
 [path]
 
 [url]
-http = https://pb.bos.nsw.edu.au/
-https = https://pb.bos.nsw.edu.au/
-
-[useremail]
-from = noreply@bos.nsw.edu.au
+http = http://www.example.com/
+https = https://www.example.com/
