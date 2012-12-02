@@ -7,6 +7,10 @@ dsn_ro = mydsn_ro
 
 [path]
 
+[site]
+title = My site title
+subtitle = site subtitle
+
 [url]
 http = http://www.example.com/
 https = https://www.example.com/

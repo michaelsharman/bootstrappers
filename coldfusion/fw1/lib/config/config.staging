@@ -1,22 +1,16 @@
 [environment]
 mode = staging
 
-[cas]
-baseURI = http://cas.uat.scootle.edu.au:8080/cas/
-logoutDirectURI = http://uat.scootle.edu.au/ec/logout.action
-
-[csrf]
-defaultIntention = programbuilder
-
 [dsn]
-dsn = programbuilder
-dsn_ro = programbuilder_ro
+dsn = mydsn
+dsn_ro = mydsn_ro
 
 [path]
 
-[url]
-http = https://boswiki:xxxx/
-https = https://boswiki:xxxx/
+[site]
+title = My site title
+subtitle = site subtitle
 
-[useremail]
-from = noreply@bos.nsw.edu.au
+[url]
+http = http://www.example.com/
+https = https://www.example.com/

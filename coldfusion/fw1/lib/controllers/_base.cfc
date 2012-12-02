@@ -1,6 +1,6 @@
 component
 {
-		
+
 	public any function init(fw)
 	{
 		variables.fw = arguments.fw;
@@ -26,14 +26,13 @@ component
 		param name="arguments.rc.meta" default="#{}#";
 	}
 
-	
+
 	public void function default(rc)
 	{
 		if (!structKeyExists(arguments.rc.meta, "subTitle"))
 		{
-			arguments.rc.meta.subTitle = "list view"	
+			arguments.rc.meta.subTitle = "My view"
 		}
-		variables.fw.service("#variables.fw.getsection()#.get", variables.fw.getsection());
 	}
 
 
@@ -44,7 +43,7 @@ component
 	{
 		var i = 0;
 		var item = "";
-		
+
 		param name="arguments.messages.list" default="#[]#";
 
 		do
@@ -55,16 +54,69 @@ component
 		}
 		while (i < arrayLen(arguments.messages.list));
 	}
-	
-	
-	private struct function getConfig()
+
+
+	/**
+	* @hint Deserialises data from the browser from JSON into a native CF datatype
+	*/
+	private struct function deserializeRequestData()
 	{
-		return application.config;
+		return isJSON( getHTTPRequestData().content ) ? deserializeJSON( getHTTPRequestData().content ) : {};
 	}
-	
-	
-	private void function setStatusCode(code = 500)
+
+
+	/**
+	* @hint Returns either the full application.config, or a specific key from within application.config
+	* @param {String} key A specific key referencing a nested struct of config parameters (an exception is thrown if the key doesn't exist)
+	*/
+	private struct function getConfig(String key)
 	{
+		if (structKeyExists(arguments, "key") && len(arguments.key))
+		{
+			return application.config[key];
+		}
+		else
+		{
+			return application.config;
+		}
+	}
+
+
+	/**
+	* @hint Returns a User object (for a logged in user). If called where a user is not logged in, an exception will be thrown
+	*/
+	private struct function getUser()
+	{
+		return session.user;
+	}
+
+
+	/**
+	* @hint Returns true|false if a request was made asynchronously
+	*/
+	private any function isAjax()
+	{
+		var headers = getHttpRequestData().headers;
+		return structKeyExists(headers, "X-Requested-With") && (headers["X-Requested-With"] == "XMLHttpRequest");
+	}
+
+
+	/**
+	* @hint Returns true|false if the current user is logged in or not
+	*/
+	private boolean function isLoggedIn()
+	{
+		return isDefined("session") && structKeyExists(session, "user");
+	}
+
+
+	/**
+	* @hint Sets the HTTP status code in the response header
+	* @param {Numeric} Status code to set
+	*/
+	private void function setStatusCode(required Numeric code)
+	{
+		request.statuscode = arguments.code;
 		getPageContext().getResponse().setstatus(arguments.code);
 	}
 
